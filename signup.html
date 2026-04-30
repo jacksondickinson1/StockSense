@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>StockSense Sign Up</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #0f172a, #1e3a8a, #2563eb);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1f2937;
+        }
+
+        .page-wrapper {
+            width: 900px;
+            max-width: 95%;
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            background: white;
+            border-radius: 22px;
+            overflow: hidden;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);
+        }
+
+        .brand-panel {
+            background: linear-gradient(160deg, #111827, #1e40af);
+            color: white;
+            padding: 50px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .brand-badge {
+            background: rgba(255, 255, 255, 0.12);
+            width: fit-content;
+            padding: 8px 14px;
+            border-radius: 999px;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+            margin-bottom: 25px;
+        }
+
+        .brand-panel h1 {
+            font-size: 42px;
+            margin: 0 0 15px 0;
+        }
+
+        .brand-panel p {
+            color: #dbeafe;
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .feature {
+            margin-bottom: 14px;
+            font-size: 15px;
+            color: #f8fafc;
+        }
+
+        .signup-panel {
+            padding: 50px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .signup-panel h2 {
+            margin: 0;
+            font-size: 30px;
+            color: #111827;
+        }
+
+        .subtitle {
+            color: #6b7280;
+            margin: 10px 0 25px 0;
+            font-size: 15px;
+        }
+
+        .messages {
+            background: #fff7ed;
+            color: #9a3412;
+            border-left: 5px solid #f97316;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 18px;
+            font-size: 14px;
+        }
+
+        label {
+            font-size: 14px;
+            font-weight: bold;
+            color: #374151;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        input {
+            width: 100%;
+            padding: 13px 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+            font-size: 15px;
+            margin-bottom: 18px;
+            outline: none;
+            transition: 0.2s ease;
+        }
+
+        input:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            background: #2563eb;
+            color: white;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 22px;
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .login-link a {
+            color: #2563eb;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+
+        .security-note {
+            margin-top: 25px;
+            padding: 14px;
+            background: #f3f4f6;
+            border-radius: 10px;
+            color: #4b5563;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 800px) {
+            .page-wrapper {
+                grid-template-columns: 1fr;
+            }
+
+            .brand-panel {
+                padding: 35px 30px;
+            }
+
+            .brand-panel h1 {
+                font-size: 34px;
+            }
+
+            .signup-panel {
+                padding: 35px 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="page-wrapper">
+
+    <div class="brand-panel">
+        <div class="brand-badge">Secure User Registration</div>
+
+        <h1>StockSense</h1>
+
+        <p>
+            Create an account to manage inventory records, update stock levels,
+            and access the StockSense dashboard securely.
+        </p>
+
+        <div class="feature">✔ Passwords stored using hashing</div>
+        <div class="feature">✔ Session-based authentication</div>
+        <div class="feature">✔ Protected inventory dashboard</div>
+        <div class="feature">✔ 30-minute session timeout</div>
+    </div>
+
+    <div class="signup-panel">
+        <h2>Create Account</h2>
+        <p class="subtitle">Register for secure StockSense access.</p>
+
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div>{{ message }}</div>
+                {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="/signup">
+            <label>Username</label>
+            <input type="text" name="username" placeholder="Create a username" required>
+
+            <label>Password</label>
+            <input type="password" name="password" placeholder="Create a password" required>
+
+            <button type="submit">Create Account</button>
+        </form>
+
+        <div class="login-link">
+            Already have an account? <a href="/login">Sign in</a>
+        </div>
+
+        <div class="security-note">
+            Account credentials are protected using password hashing before being stored.
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>
