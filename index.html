@@ -46,8 +46,8 @@
         }
 
         .container {
-            width: 90%;
-            max-width: 1200px;
+            width: 95%;
+            max-width: 1350px;
             margin: 30px auto;
         }
 
@@ -61,10 +61,21 @@
 
         h1 {
             margin-top: 0;
+            color: #111827;
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #1f2d3d;
+        }
+
+        .subtitle {
+            color: #667085;
         }
 
         .role {
             background: #e0f2fe;
+            color: #075985;
             padding: 5px 10px;
             border-radius: 20px;
             font-size: 12px;
@@ -74,16 +85,39 @@
         .messages {
             background: #fff7ed;
             border-left: 5px solid #f97316;
-            padding: 10px;
+            padding: 12px;
             border-radius: 8px;
-            margin-top: 10px;
+            margin-top: 12px;
+            color: #9a3412;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
         }
 
         input, select {
             padding: 10px;
             border-radius: 8px;
-            border: 1px solid #ccc;
-            margin: 5px;
+            border: 1px solid #ccd5df;
+            font-size: 14px;
+        }
+
+        .wide-input {
+            min-width: 220px;
+            flex: 2;
+        }
+
+        .medium-input {
+            min-width: 160px;
+            flex: 1;
+        }
+
+        .small-input {
+            min-width: 120px;
+            flex: 1;
         }
 
         button {
@@ -92,36 +126,83 @@
             color: white;
             border: none;
             border-radius: 8px;
+            font-weight: bold;
             cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        .clear-link {
+            text-decoration: none;
+            background: #64748b;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .notice {
+            background: #f8fafc;
+            border-left: 5px solid #64748b;
+            padding: 14px;
+            border-radius: 10px;
+            color: #475569;
+            margin-bottom: 20px;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
+            border-radius: 12px;
+            overflow: hidden;
         }
 
         th {
             background: #1f2d3d;
             color: white;
             padding: 12px;
+            text-align: left;
+            font-size: 14px;
         }
 
         td {
-            padding: 10px;
-            border-bottom: 1px solid #ddd;
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 14px;
         }
 
-        .low {
-            color: red;
+        tr:hover {
+            background-color: #f9fafb;
+        }
+
+        .status {
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 12px;
             font-weight: bold;
+            display: inline-block;
+        }
+
+        .in-stock {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .low-stock {
+            background-color: #fee2e2;
+            color: #7f1d1d;
         }
 
         .adjust a {
             margin-right: 5px;
-            padding: 5px 8px;
-            border-radius: 6px;
+            padding: 7px 10px;
+            border-radius: 8px;
             text-decoration: none;
             font-size: 12px;
+            font-weight: bold;
         }
 
         .minus {
@@ -134,21 +215,50 @@
             color: #065f46;
         }
 
+        .delete {
+            color: #dc2626;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .delete:hover {
+            text-decoration: underline;
+        }
+
         .admin-only {
             color: gray;
             font-style: italic;
+        }
+
+        .empty {
+            color: #667085;
+            font-style: italic;
+            padding: 15px 0;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #667085;
+            font-size: 13px;
         }
     </style>
 
     <script>
         function toggleSizeField() {
-            let category = document.getElementById("category").value;
+            let category = document.getElementById("category");
             let sizeField = document.getElementById("size");
 
-            if (category === "Mattress") {
+            if (!category || !sizeField) {
+                return;
+            }
+
+            if (category.value === "Mattress") {
                 sizeField.style.display = "inline";
+                sizeField.required = true;
             } else {
                 sizeField.style.display = "none";
+                sizeField.required = false;
                 sizeField.value = "";
             }
         }
@@ -172,8 +282,13 @@
 <div class="container">
 
     <div class="card">
-        <h1>Dashboard</h1>
-        <p>Welcome, <strong>{{ username }}</strong>
+        <h1>Furniture Inventory Dashboard</h1>
+        <p class="subtitle">
+            Track inventory levels, update stock quantities, and identify low-stock items.
+        </p>
+
+        <p>
+            Welcome, <strong>{{ username }}</strong>
             <span class="role">{{ role }}</span>
         </p>
 
@@ -190,38 +305,102 @@
 
     {% if role == "admin" %}
     <div class="card">
-        <h2>Add Item</h2>
+        <h2>Add Inventory Item</h2>
 
         <form method="POST" action="/add">
-            <input type="text" name="name" placeholder="Item Name" required>
+            <div class="form-row">
+                <input class="wide-input" type="text" name="name" placeholder="Item Name" required>
 
-            <select name="category" id="category" onchange="toggleSizeField()" required>
-                <option value="">Category</option>
-                <option>Sofa</option>
-                <option>Chair</option>
-                <option>Table</option>
-                <option>Mattress</option>
-            </select>
+                <select class="medium-input" name="category" id="category" onchange="toggleSizeField()" required>
+                    <option value="">Select Category</option>
+                    <option value="Sofa">Sofa</option>
+                    <option value="Sectional">Sectional</option>
+                    <option value="Recliner">Recliner</option>
+                    <option value="Chair">Chair</option>
+                    <option value="Dining Table">Dining Table</option>
+                    <option value="Coffee Table">Coffee Table</option>
+                    <option value="End Table">End Table</option>
+                    <option value="Bedroom Set">Bedroom Set</option>
+                    <option value="Mattress">Mattress</option>
+                    <option value="Desk">Desk</option>
+                    <option value="TV Stand">TV Stand</option>
+                    <option value="Dresser">Dresser</option>
+                    <option value="Nightstand">Nightstand</option>
+                    <option value="Other">Other</option>
+                </select>
 
-            <select name="size" id="size" style="display:none;">
-                <option value="">Size</option>
-                <option>Twin</option>
-                <option>Full</option>
-                <option>Queen</option>
-                <option>King</option>
-            </select>
+                <select class="medium-input" name="size" id="size" style="display:none;">
+                    <option value="">Select Mattress Size</option>
+                    <option value="Twin">Twin</option>
+                    <option value="Twin XL">Twin XL</option>
+                    <option value="Full">Full</option>
+                    <option value="Queen">Queen</option>
+                    <option value="King">King</option>
+                    <option value="California King">California King</option>
+                </select>
 
-            <input type="text" name="color" placeholder="Color" required>
-            <input type="number" name="quantity" placeholder="Quantity" required>
+                <input class="medium-input" type="text" name="color" placeholder="Color" required>
 
-            <button>Add</button>
+                <input class="small-input" type="number" name="quantity" placeholder="Quantity" required>
+
+                <button type="submit">Add Item</button>
+            </div>
         </form>
+    </div>
+    {% else %}
+    <div class="notice">
+        Employee access is limited to viewing inventory and using quick-adjust controls.
+        Admin access is required to add, delete, or manually update inventory records.
     </div>
     {% endif %}
 
     <div class="card">
+        <h2>Search and Filter Inventory</h2>
+
+        <form method="GET" action="/">
+            <div class="form-row">
+                <input class="wide-input" type="text" name="search" placeholder="Search by item name"
+                       value="{{ search }}">
+
+                <select class="medium-input" name="category">
+                    <option value="">All Categories</option>
+                    <option value="Sofa" {% if category_filter == "Sofa" %}selected{% endif %}>Sofa</option>
+                    <option value="Sectional" {% if category_filter == "Sectional" %}selected{% endif %}>Sectional</option>
+                    <option value="Recliner" {% if category_filter == "Recliner" %}selected{% endif %}>Recliner</option>
+                    <option value="Chair" {% if category_filter == "Chair" %}selected{% endif %}>Chair</option>
+                    <option value="Dining Table" {% if category_filter == "Dining Table" %}selected{% endif %}>Dining Table</option>
+                    <option value="Coffee Table" {% if category_filter == "Coffee Table" %}selected{% endif %}>Coffee Table</option>
+                    <option value="End Table" {% if category_filter == "End Table" %}selected{% endif %}>End Table</option>
+                    <option value="Bedroom Set" {% if category_filter == "Bedroom Set" %}selected{% endif %}>Bedroom Set</option>
+                    <option value="Mattress" {% if category_filter == "Mattress" %}selected{% endif %}>Mattress</option>
+                    <option value="Desk" {% if category_filter == "Desk" %}selected{% endif %}>Desk</option>
+                    <option value="TV Stand" {% if category_filter == "TV Stand" %}selected{% endif %}>TV Stand</option>
+                    <option value="Dresser" {% if category_filter == "Dresser" %}selected{% endif %}>Dresser</option>
+                    <option value="Nightstand" {% if category_filter == "Nightstand" %}selected{% endif %}>Nightstand</option>
+                    <option value="Other" {% if category_filter == "Other" %}selected{% endif %}>Other</option>
+                </select>
+
+                <input class="medium-input" type="text" name="color" placeholder="Filter by color"
+                       value="{{ color_filter }}">
+
+                <select class="medium-input" name="status">
+                    <option value="">All Stock Status</option>
+                    <option value="low" {% if status_filter == "low" %}selected{% endif %}>Low Stock</option>
+                    <option value="in" {% if status_filter == "in" %}selected{% endif %}>In Stock</option>
+                </select>
+
+                <button type="submit">Apply Filters</button>
+                <a class="clear-link" href="/">Clear</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="card">
         <h2>Inventory</h2>
 
+        {% if inventory|length == 0 %}
+            <p class="empty">No inventory items match the current search/filter.</p>
+        {% else %}
         <table>
             <tr>
                 <th>Name</th>
@@ -245,27 +424,27 @@
 
                 <td>
                     {% if item.quantity <= 5 %}
-                        <span class="low">Low</span>
+                        <span class="status low-stock">Low Stock</span>
                     {% else %}
-                        OK
+                        <span class="status in-stock">In Stock</span>
                     {% endif %}
                 </td>
 
                 <td class="adjust">
-                    <a href="/adjust/{{ loop.index0 }}/decrease" class="minus">-1</a>
-                    <a href="/adjust/{{ loop.index0 }}/increase" class="plus">+1</a>
+                    <a href="/adjust/{{ item.id }}/decrease" class="minus">-1 Sold</a>
+                    <a href="/adjust/{{ item.id }}/increase" class="plus">+1 Add</a>
                 </td>
 
                 {% if role == "admin" %}
                 <td>
-                    <form method="POST" action="/update/{{ loop.index0 }}">
+                    <form method="POST" action="/update/{{ item.id }}">
                         <input type="number" name="new_quantity" placeholder="New Qty" required>
-                        <button>Update</button>
+                        <button type="submit">Update</button>
                     </form>
                 </td>
 
                 <td>
-                    <a href="/delete/{{ loop.index0 }}">Delete</a>
+                    <a href="/delete/{{ item.id }}" class="delete">Delete</a>
                 </td>
                 {% else %}
                 <td class="admin-only">Admin Only</td>
@@ -274,6 +453,11 @@
             </tr>
             {% endfor %}
         </table>
+        {% endif %}
+    </div>
+
+    <div class="footer">
+        StockSense | Role-based inventory tracking system for furniture store operations
     </div>
 
 </div>
