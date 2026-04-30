@@ -105,6 +105,21 @@
             font-weight: bold;
         }
 
+        .delete-user {
+            color: #dc2626;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .delete-user:hover {
+            text-decoration: underline;
+        }
+
+        .disabled {
+            color: gray;
+            font-style: italic;
+        }
+
         .note {
             color: #667085;
         }
@@ -123,7 +138,7 @@
     <div class="card">
         <h1>User Management</h1>
         <p class="note">
-            Welcome, <strong>{{ username }}</strong>. This page allows administrators to create authorized user accounts and assign access roles.
+            Welcome, <strong>{{ username }}</strong>. This page allows administrators to create and remove authorized user accounts.
         </p>
 
         {% with messages = get_flashed_messages() %}
@@ -154,7 +169,7 @@
         </form>
 
         <p class="note">
-            Employees can view inventory and use quick-adjust controls. Admins can add, update, delete inventory, and create users.
+            Employees can view inventory and use quick-adjust controls. Admins can add, update, delete inventory, and manage users.
         </p>
     </div>
 
@@ -165,12 +180,23 @@
             <tr>
                 <th>Username</th>
                 <th>Role</th>
+                <th>Action</th>
             </tr>
 
             {% for user in users %}
             <tr>
                 <td>{{ user.username }}</td>
                 <td><span class="role-badge">{{ user.role }}</span></td>
+                <td>
+                    {% if user.username == username %}
+                        <span class="disabled">Current user</span>
+                    {% else %}
+                        <a class="delete-user" href="/delete_user/{{ user.username }}"
+                           onclick="return confirm('Are you sure you want to delete this user?');">
+                           Delete User
+                        </a>
+                    {% endif %}
+                </td>
             </tr>
             {% endfor %}
         </table>
