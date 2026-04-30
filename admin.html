@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>StockSense Admin Panel</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #eef2f3, #dfe9f3);
+            margin: 0;
+            color: #1f2d3d;
+        }
+
+        .navbar {
+            background: #1f2d3d;
+            color: white;
+            padding: 16px 30px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .navbar a {
+            float: right;
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            margin-left: 20px;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1100px;
+            margin: 30px auto;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 14px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+        }
+
+        h1, h2 {
+            margin-top: 0;
+        }
+
+        input, select {
+            padding: 12px;
+            border: 1px solid #ccd5df;
+            border-radius: 8px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        button {
+            padding: 12px 18px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        .messages {
+            background: #fff7ed;
+            border-left: 5px solid #f97316;
+            padding: 12px;
+            border-radius: 8px;
+            color: #9a3412;
+            margin-top: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #1f2d3d;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .role-badge {
+            padding: 5px 10px;
+            background: #e0f2fe;
+            color: #075985;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .note {
+            color: #667085;
+        }
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    StockSense Admin Panel
+    <a href="/logout">Logout</a>
+    <a href="/">Dashboard</a>
+</div>
+
+<div class="container">
+
+    <div class="card">
+        <h1>User Management</h1>
+        <p class="note">
+            Welcome, <strong>{{ username }}</strong>. This page allows administrators to create authorized user accounts and assign access roles.
+        </p>
+
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div>{{ message }}</div>
+                {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+    </div>
+
+    <div class="card">
+        <h2>Create New User</h2>
+
+        <form method="POST" action="/admin">
+            <input type="text" name="username" placeholder="Username" required>
+            <input type="password" name="password" placeholder="Password" required>
+
+            <select name="role" required>
+                <option value="">Select Role</option>
+                <option value="employee">Employee</option>
+                <option value="admin">Admin</option>
+            </select>
+
+            <button type="submit">Create User</button>
+        </form>
+
+        <p class="note">
+            Employees can view inventory and use quick-adjust controls. Admins can add, update, delete inventory, and create users.
+        </p>
+    </div>
+
+    <div class="card">
+        <h2>Authorized Users</h2>
+
+        <table>
+            <tr>
+                <th>Username</th>
+                <th>Role</th>
+            </tr>
+
+            {% for user in users %}
+            <tr>
+                <td>{{ user.username }}</td>
+                <td><span class="role-badge">{{ user.role }}</span></td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+</div>
+
+</body>
+</html>
