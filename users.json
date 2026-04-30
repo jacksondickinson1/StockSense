@@ -1,1 +1,12 @@
-[]
+[
+    {
+        "username": "admin",
+        "password": "scrypt:32768:8:1$puE72blXO0rO7cAP$a84df668194c3256d2e1cfd0eaf76bd8c69b453eac41475d0c0e72f64afb7d5e06c4163aa28288193e3cf9877cc5cafc389312c92c6cb0cee68c65fac0dcf507",
+        "role": "admin"
+    },
+    {
+        "username": "jbdickinson1s",
+        "password": "scrypt:32768:8:1$LYZRLXe7sN8PkOpM$9be586c0065c0c82624df2164e46e038933f9621e12b15ed1dda50cff649dbf8dbbe0e42aab623e6ac1fd96f37edf5afb046df69b498ab2439f09e5374870538",
+        "role": "employee"
+    }
+]
