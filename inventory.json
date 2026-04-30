@@ -1,1 +1,37 @@
-[]
+[
+    {
+        "name": "Castleberry",
+        "category": "Sofa",
+        "color": "black",
+        "size": "",
+        "quantity": 10
+    },
+    {
+        "name": "Onyx 5pc",
+        "category": "Sectional",
+        "color": "grey",
+        "size": "",
+        "quantity": 2
+    },
+    {
+        "name": "SS power",
+        "category": "Recliner",
+        "color": "oatmeal",
+        "size": "",
+        "quantity": 5
+    },
+    {
+        "name": "greybrook",
+        "category": "Sofa",
+        "color": "camel",
+        "size": "",
+        "quantity": 8
+    },
+    {
+        "name": "Cool phase hybrid",
+        "category": "Mattress",
+        "color": "white",
+        "size": "King",
+        "quantity": 10
+    }
+]
