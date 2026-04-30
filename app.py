@@ -3,6 +3,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import timedelta
 import json
 import os
+import uuid
 
 app = Flask(__name__)
 app.secret_key = "stocksense_secret"
@@ -18,9 +19,20 @@ def load_inventory():
 
     try:
         with open(DATA_FILE, "r") as file:
-            return json.load(file)
+            inventory = json.load(file)
     except json.JSONDecodeError:
         return []
+
+    changed = False
+    for item in inventory:
+        if "id" not in item:
+            item["id"] = str(uuid.uuid4())
+            changed = True
+
+    if changed:
+        save_inventory(inventory)
+
+    return inventory
 
 
 def save_inventory(inventory):
@@ -48,12 +60,11 @@ def create_default_admin():
     users = load_users()
 
     if len(users) == 0:
-        admin_user = {
+        users.append({
             "username": "admin",
             "password": generate_password_hash("admin123"),
             "role": "admin"
-        }
-        users.append(admin_user)
+        })
         save_users(users)
 
 
@@ -63,6 +74,13 @@ def is_logged_in():
 
 def is_admin():
     return session.get("role") == "admin"
+
+
+def find_item_by_id(inventory, item_id):
+    for item in inventory:
+        if item.get("id") == item_id:
+            return item
+    return None
 
 
 create_default_admin()
@@ -75,11 +93,37 @@ def home():
 
     inventory = load_inventory()
 
+    search = request.args.get("search", "").lower()
+    category_filter = request.args.get("category", "")
+    color_filter = request.args.get("color", "").lower()
+    status_filter = request.args.get("status", "")
+
+    filtered_inventory = []
+
+    for item in inventory:
+        name_match = search in item.get("name", "").lower()
+        category_match = category_filter == "" or item.get("category", "") == category_filter
+        color_match = color_filter == "" or color_filter in item.get("color", "").lower()
+
+        if status_filter == "low":
+            status_match = item.get("quantity", 0) <= 5
+        elif status_filter == "in":
+            status_match = item.get("quantity", 0) > 5
+        else:
+            status_match = True
+
+        if name_match and category_match and color_match and status_match:
+            filtered_inventory.append(item)
+
     return render_template(
         "index.html",
-        inventory=inventory,
+        inventory=filtered_inventory,
         username=session["username"],
-        role=session["role"]
+        role=session["role"],
+        search=search,
+        category_filter=category_filter,
+        color_filter=color_filter,
+        status_filter=status_filter
     )
 
 
@@ -95,7 +139,7 @@ def login():
             if user["username"] == username and check_password_hash(user["password"], password):
                 session.permanent = True
                 session["username"] = username
-                session["role"] = user["role"]
+                session["role"] = user.get("role", "employee")
 
                 flash("Logged in successfully.")
                 return redirect("/")
@@ -142,19 +186,43 @@ def admin_panel():
                 flash("Username already exists.")
                 return redirect("/admin")
 
-        new_user = {
+        users.append({
             "username": username,
             "password": generate_password_hash(password),
             "role": role
-        }
+        })
 
-        users.append(new_user)
         save_users(users)
-
         flash("User created successfully.")
         return redirect("/admin")
 
     return render_template("admin.html", users=users, username=session["username"])
+
+
+@app.route("/delete_user/<username>")
+def delete_user(username):
+    if not is_logged_in():
+        return redirect("/login")
+
+    if not is_admin():
+        flash("Access denied. Admin privileges are required.")
+        return redirect("/")
+
+    users = load_users()
+
+    if username == session["username"]:
+        flash("You cannot delete your own account while logged in.")
+        return redirect("/admin")
+
+    updated_users = [user for user in users if user["username"] != username]
+
+    if len(updated_users) == len(users):
+        flash("User not found.")
+    else:
+        save_users(updated_users)
+        flash("User deleted successfully.")
+
+    return redirect("/admin")
 
 
 @app.route("/add", methods=["POST"])
@@ -203,6 +271,7 @@ def add_item():
         return redirect("/")
 
     inventory.append({
+        "id": str(uuid.uuid4()),
         "name": name,
         "category": category,
         "color": color,
@@ -215,8 +284,8 @@ def add_item():
     return redirect("/")
 
 
-@app.route("/update/<int:index>", methods=["POST"])
-def update_item(index):
+@app.route("/update/<item_id>", methods=["POST"])
+def update_item(item_id):
     if not is_logged_in():
         return redirect("/login")
 
@@ -225,6 +294,11 @@ def update_item(index):
         return redirect("/")
 
     inventory = load_inventory()
+    item = find_item_by_id(inventory, item_id)
+
+    if item is None:
+        flash("Item not found.")
+        return redirect("/")
 
     try:
         new_quantity = int(request.form["new_quantity"])
@@ -236,40 +310,41 @@ def update_item(index):
         flash("Quantity cannot be negative.")
         return redirect("/")
 
-    if 0 <= index < len(inventory):
-        inventory[index]["quantity"] = new_quantity
-        save_inventory(inventory)
-        flash("Item updated successfully.")
-
+    item["quantity"] = new_quantity
+    save_inventory(inventory)
+    flash("Item updated successfully.")
     return redirect("/")
 
 
-@app.route("/adjust/<int:index>/<action>")
-def adjust_item(index, action):
+@app.route("/adjust/<item_id>/<action>")
+def adjust_item(item_id, action):
     if not is_logged_in():
         return redirect("/login")
 
     inventory = load_inventory()
+    item = find_item_by_id(inventory, item_id)
 
-    if 0 <= index < len(inventory):
-        if action == "decrease":
-            if inventory[index]["quantity"] > 0:
-                inventory[index]["quantity"] -= 1
-                flash("Inventory decreased by 1.")
-            else:
-                flash("Quantity cannot go below zero.")
+    if item is None:
+        flash("Item not found.")
+        return redirect("/")
 
-        elif action == "increase":
-            inventory[index]["quantity"] += 1
-            flash("Inventory increased by 1.")
+    if action == "decrease":
+        if item["quantity"] > 0:
+            item["quantity"] -= 1
+            flash("Inventory decreased by 1.")
+        else:
+            flash("Quantity cannot go below zero.")
 
-        save_inventory(inventory)
+    elif action == "increase":
+        item["quantity"] += 1
+        flash("Inventory increased by 1.")
 
+    save_inventory(inventory)
     return redirect("/")
 
 
-@app.route("/delete/<int:index>")
-def delete_item(index):
+@app.route("/delete/<item_id>")
+def delete_item(item_id):
     if not is_logged_in():
         return redirect("/login")
 
@@ -279,9 +354,12 @@ def delete_item(index):
 
     inventory = load_inventory()
 
-    if 0 <= index < len(inventory):
-        inventory.pop(index)
-        save_inventory(inventory)
+    updated_inventory = [item for item in inventory if item.get("id") != item_id]
+
+    if len(updated_inventory) == len(inventory):
+        flash("Item not found.")
+    else:
+        save_inventory(updated_inventory)
         flash("Item deleted.")
 
     return redirect("/")
